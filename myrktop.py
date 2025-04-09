@@ -360,7 +360,7 @@ def parse_ata_info(output):
     # Temperature: look for a line with "Temperature_Celsius"
     temp = "N/A"
     for line in output.splitlines():
-        if "Temperature_Celsius" in line:
+        if "emperature" in line:
             tokens = line.split()
             for token in reversed(tokens):
                 if token.isdigit():
