@@ -34,9 +34,9 @@ myrktop
 - **NPU & RGA usage**
 - **RAM & Swap usage**
 - **System temperature readings**
-- **Net (eth0): Down/Up readings**
+- **Network interfaces: Down/Up readings**
 - **Storage Usage (/etc/fstab)**
-- **NVMe & USB Storage Info:**
+- **NVMe & ATA Storage Info:**
 
 
 ---
@@ -48,14 +48,14 @@ myrktop
 ──────────────────────────────────────────────────
 Device: rockchip,rk3588s-orangepi-5rockchip,rk3588
 NPU Version: RKNPU driver: v0.9.8
-System Uptime: up 1 day, 1 hour, 31 minutes
+System Uptime: up 17 hours, 30 minutes
 Docker Status: Running ✅
 ──────────────────────────────────────────────────
 📊 CPU Usage & Frequency:
-Core 0:   8% 1800MHz   Core 1:   9% 1800MHz
-Core 2:   3% 1800MHz   Core 3:   5% 1800MHz
-Core 4:   7% 2352MHz   Core 5:  10% 2352MHz
-Core 6:  14% 2304MHz   Core 7:   7% 2304MHz
+Core 0:  12% 1800 MHz   Core 1:   3% 1800 MHz
+Core 2:   9% 1800 MHz   Core 3:   6% 1800 MHz
+Core 4:   3% 2352 MHz   Core 5:   4% 2352 MHz
+Core 6:  20% 2304 MHz   Core 7:  17% 2304 MHz
 ──────────────────────────────────────────────────
 🎮 GPU Load:   0%    300 MHz
 ──────────────────────────────────────────────────
@@ -64,33 +64,35 @@ Core 6:  14% 2304MHz   Core 7:   7% 2304MHz
 🖼️  RGA Load: 0% 0% 0%
 ──────────────────────────────────────────────────
 🖥️  RAM & Swap Usage:
-RAM Used: 2.9Gi / 15Gi
-Swap Used: 12Mi / 7.8Gi
+RAM Used: 2.4Gi / 15Gi
+Swap Used: 5.0Mi / 7.8Gi
 ──────────────────────────────────────────────────
 🌡️  Temperatures:
-npu_thermal-virtual-0          33°C
-center_thermal-virtual-0       32°C
-bigcore1_thermal-virtual-0     33°C
-soc_thermal-virtual-0          33°C
-nvme-pci-44100                 30°C
-gpu_thermal-virtual-0          32°C
-littlecore_thermal-virtual-0   33°C
-bigcore0_thermal-virtual-0     33°C
+npu_thermal-virtual-0          30°C
+center_thermal-virtual-0       30°C
+bigcore1_thermal-virtual-0     31°C
+soc_thermal-virtual-0          31°C
+nvme-pci-44100                 28°C
+gpu_thermal-virtual-0          30°C
+littlecore_thermal-virtual-0   31°C
+bigcore0_thermal-virtual-0     31°C
 ──────────────────────────────────────────────────
-🌐 Net (eth0): Down 0.01 Mbps | Up 0.05 Mbps
+🌐 Network Traffic:
+wlan0: Down 0.1 Mbps | Up 2.00 Mbps
+eth0: Down 0.91 Mbps | Up 0.06 Mbps
 ──────────────────────────────────────────────────
 💾 Storage Usage (/etc/fstab):
 Mount Point             Total     Used     Free
-/                         59G     6.1G      52G
-/tmp                     7.8G     8.0K     7.8G
-/media/ssdmount          938G     314G     577G
-/media/wdmount           1.8T     369G     1.4T
+/                         59G     7.2G      51G
+/media/ssdmount          938G     387G     504G
+/media/wdmount           1.8T     1.5T     233G
+/media/500hdd            458G     149G     286G
 ──────────────────────────────────────────────────
-💿 NVMe & USB Storage Info:
 NVMe Devices:
-nvme0n1 - Unknown | Temp: 32°C | Hours: 207
-USB Storage Devices:
-sda - Elements 10B8 | Temp: 34°C | Hours: 16545
+/dev/nvme0n1 - SPCC M.2 PCIe SSD | Temp: 29°C | Hours: 829 | Spare: 100%
+ATA Devices:
+/dev/sda - WDC WD20NMVW-11AV3S2 | Temp: 35°C | Hours: 17169 | 5200 rpm
+/dev/sdb - WDC WD5000LPLX-00ZNTT0 | Temp: 33°C | Hours: 28406 | 7200 rpm
 ──────────────────────────────────────────────────
 Press 'q' to exit. Use arrows or mouse to scroll.
 ```
