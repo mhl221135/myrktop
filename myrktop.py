@@ -335,8 +335,8 @@ def parse_nvme_info(output):
     info["model"] = m.group(1).strip() if m else "Unknown"
     m = re.search(r"Temperature Sensor 1:\s+(\d+)\s*Celsius", output)
     info["temp"] = m.group(1).strip() if m else "N/A"
-    m = re.search(r"Power On Hours:\s+(\d+)", output)
-    info["power_hours"] = m.group(1).strip() if m else "N/A"
+    m = re.search(r"Power On Hours:\s+([\d,]+)", output)
+    info["power_hours"] = m.group(1).replace(",", "").strip() if m else "N/A"
     m = re.search(r"Available Spare:\s+(\d+)%", output)
     info["avail_spare"] = m.group(1).strip() + "%" if m else "N/A"
     return info
@@ -432,22 +432,22 @@ def get_storage_info():
         if dtype == "nvme":
             line = f"/dev/{dev} - {info.get('model', 'Unknown')}"
             if info.get("temp") and info.get("temp") != "N/A":
-                line += f" | Temp: {info.get('temp')}°C"
+                line += f" {info.get('temp')}°C"
             if info.get("power_hours") and info.get("power_hours") != "N/A":
-                line += f" | Hours: {info.get('power_hours')}"
+                line += f" {info.get('power_hours')}H"
             if info.get("avail_spare") and info.get("avail_spare") != "N/A":
-                line += f" | Spare: {info.get('avail_spare')}"
+                line += f" {info.get('avail_spare')}"
             nvme_list.append(line)
         elif dtype == "ata":
             line = f"/dev/{dev} - {info.get('model', 'Unknown')}"
             if info.get("temp") and info.get("temp") != "N/A":
-                line += f" | Temp: {info.get('temp')}°C"
+                line += f" {info.get('temp')}°C"
             if info.get("power_hours") and info.get("power_hours") != "N/A":
-                line += f" | Hours: {info.get('power_hours')}"
+                line += f" {info.get('power_hours')}H"
             if info.get("rotation"):
-                line += f" | {info.get('rotation')}"
+                line += f" {info.get('rotation')}"
             if info.get("wear_level"):
-                line += f" | Spare: {info.get('wear_level')}%"
+                line += f" {info.get('wear_level')}%"
             ata_list.append(line)
         else:
             debug_info = info.get("debug", {})
