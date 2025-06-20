@@ -86,10 +86,11 @@ def get_cpu_info():
         cpu_freqs[i] = freq
     return cpu_loads, cpu_freqs
 
-def get_gpu_info():
-    gpu_load_path = "/sys/class/devfreq/fb000000.gpu/load"
-    gpu_freq_path = "/sys/class/devfreq/fb000000.gpu/cur_freq"
-    if not os.path.exists(gpu_load_path) or not os.path.exists(gpu_freq_path):
+def get_gpu_info(gpu_path):
+    gpu_load_path = os.path.join(gpu_path, "load")
+    gpu_freq_path = os.path.join(gpu_path, "cur_freq")
+
+    if not gpu_path or not os.path.exists(gpu_load_path) or not os.path.exists(gpu_freq_path):
         return None, None
     try:
         with open(gpu_load_path, "r") as f:
@@ -107,10 +108,11 @@ def get_gpu_info():
         gpu_freq = 0
     return gpu_load, gpu_freq
 
-def get_npu_info():
+def get_npu_info(npu_path):
     npu_load_path = "/sys/kernel/debug/rknpu/load"
-    npu_freq_path = "/sys/class/devfreq/fdab0000.npu/cur_freq"
-    if not os.path.exists(npu_load_path) or not os.path.exists(npu_freq_path):
+    npu_freq_path =  os.path.join(npu_path, "cur_freq")
+
+    if not npu_path or not os.path.exists(npu_load_path) or not os.path.exists(npu_freq_path):
         return None, None
     try:
         with open(npu_load_path, "r") as f:
@@ -459,6 +461,13 @@ def get_storage_info():
             ata_list.append(line)
     return nvme_list, ata_list
 
+def get_folders_from_path(path):
+    """Get a list of folders in the given path."""
+    try:
+        return [os.path.join(path, d) for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
+    except Exception:
+        return []
+
 # -------------------------------
 # Dashboard Display (Urwid)
 # -------------------------------
@@ -531,7 +540,13 @@ def build_dashboard():
             ]
             lines.append(markup)
     lines.append(("header", sep))
-    gpu_load, gpu_freq = get_gpu_info()
+
+    devfreq_devices = get_folders_from_path("/sys/class/devfreq/")
+
+    gpu_path = next((x for x in devfreq_devices if "gpu" in x), None)
+    npu_path = next((x for x in devfreq_devices if "npu" in x), None)
+
+    gpu_load, gpu_freq = get_gpu_info(gpu_path)
     if gpu_load is not None and gpu_freq is not None:
         gpu_attr = 'temp_red' if gpu_load >= 80 else ('temp_yellow' if gpu_load >= 60 else 'default')
         gpu_markup = [
@@ -540,7 +555,8 @@ def build_dashboard():
         ]
         lines.append(gpu_markup)
         lines.append(("header", sep))
-    npu_load, npu_freq = get_npu_info()
+
+    npu_load, npu_freq = get_npu_info(npu_path)
     if npu_load is not None and npu_freq is not None:
         try:
             npu_numeric = int(re.search(r'(\d+)%', npu_load).group(1))
