@@ -6,6 +6,8 @@ Enhancements:
   - Top-5 CPU process list
   - Tiered refresh intervals (SMART cached 60s, disk 5s, RAM 1s, CPU 0.5s)
   - Background thread for slow SMART queries
+  - Per-drive I/O (read/write MB/s + IOPS from /proc/diskstats)
+  - Hardware rows (GPU/NPU/RGA) hidden when not present on the board
   - 'r' toggles refresh speed, 'h' shows help overlay, 'q' quits
   - No duplicate class; no subprocess for RAM/disk reads
 """
@@ -22,6 +24,7 @@ import time
 # ─────────────────────────────────────────────
 prev_cpu: dict = {}
 prev_net: dict = {}
+prev_disk_io: dict = {}
 
 # Tiered refresh cache
 _cache: dict = {}
@@ -425,6 +428,54 @@ def get_fstab_disk_usage():
     return usage_lines
 
 # ─────────────────────────────────────────────
+# Per-Drive I/O — read /proc/diskstats
+# ─────────────────────────────────────────────
+
+def get_drive_io():
+    """Return per-physical-disk read/write MB/s and IOPS from /proc/diskstats."""
+    global prev_disk_io
+
+    stats = {}
+    try:
+        with open("/proc/diskstats", "r") as f:
+            lines = f.readlines()
+    except Exception:
+        return {}
+
+    for line in lines:
+        fields = line.split()
+        if len(fields) < 14:
+            continue
+        name        = fields[2]
+        reads       = int(fields[3])
+        sectors_rd  = int(fields[5])
+        writes      = int(fields[7])
+        sectors_wr  = int(fields[9])
+        if not re.match(r"^(sd[a-z]+|nvme[0-9]+n[0-9]+|mmcblk[0-9]+|vd[a-z]+|nvme[0-9]+|hd[a-z]+)$", name):
+            continue
+        stats[name] = (reads, sectors_rd, writes, sectors_wr)
+
+    now    = time.monotonic()
+    result = {}
+    for name, (reads, srd, writes, swr) in stats.items():
+        if name in prev_disk_io:
+            pr, psrd, pwr, pswr, pnow = prev_disk_io[name]
+            dt = now - pnow
+            if dt > 0:
+                rd_mb = (srd - psrd) * 512 / (1e6 * dt)
+                wr_mb = (swr - pswr) * 512 / (1e6 * dt)
+                rd_iops = max(0, reads - pr) / dt
+                wr_iops = max(0, writes - pwr) / dt
+            else:
+                rd_mb = wr_mb = rd_iops = wr_iops = 0.0
+        else:
+            rd_mb = wr_mb = rd_iops = wr_iops = 0.0
+        result[name] = (max(0.0, rd_mb), max(0.0, wr_mb), rd_iops, wr_iops)
+        prev_disk_io[name] = (reads, srd, writes, swr, now)
+
+    return result
+
+# ─────────────────────────────────────────────
 # Top Processes
 # ─────────────────────────────────────────────
 
@@ -675,7 +726,6 @@ def build_dashboard():
         lines.append(markup)
 
     # ── GPU ─────────────────────────────────────
-    lines.append(("header", SEP))
     gpu_load, gpu_freq = get_gpu_info()
     if gpu_load is not None:
         attr = _load_attr(gpu_load)
@@ -686,11 +736,8 @@ def build_dashboard():
             ("label", f" {gpu_load:3d}%  "),
             ("freq",  f"{gpu_freq:4d} MHz"),
         ])
-    else:
-        lines.append(("dim", "🎮 GPU  : N/A"))
 
     # ── NPU ─────────────────────────────────────
-    lines.append(("header", SEP))
     npu_load, npu_freq = get_npu_info()
     if npu_load is not None:
         try:
@@ -703,8 +750,6 @@ def build_dashboard():
             (attr,    npu_load),
             ("freq",  f"   {npu_freq:4d} MHz"),
         ])
-    else:
-        lines.append(("dim", "🧠 NPU  : N/A"))
 
     # ── RGA ─────────────────────────────────────
     rga_info = get_rga_info()
@@ -754,6 +799,16 @@ def build_dashboard():
     lines.append(("title", "💾 Storage Usage (/etc/fstab)"))
     for d in get_fstab_disk_usage():
         lines.append(("default", d))
+
+    # ── Drive I/O ───────────────────────────────
+    drive_io = get_drive_io()
+    if drive_io:
+        lines.append(("header", SEP))
+        lines.append(("title", "📈 Drive I/O"))
+        lines.append(("label", f"  {'Drive':<12} {'Read':>9} {'Write':>9} {'Rd IOPS':>8} {'Wr IOPS':>8}"))
+        for name, (rd_mb, wr_mb, rd_iops, wr_iops) in drive_io.items():
+            lines.append(("default",
+                f"  {name:<12} {rd_mb:8.2f}M {wr_mb:8.2f}M {rd_iops:8.0f} {wr_iops:8.0f}"))
 
     # ── SMART Info ──────────────────────────────
     lines.append(("header", SEP))

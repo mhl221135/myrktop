@@ -1,5 +1,19 @@
 # 🖥️ myrktop - Orange Pi 5 (RK3588) System Monitor COLORED BRANCH
 
+> **Branch: `drive-io-conditional-rows`** — adds a per-drive I/O section and hides
+> hardware rows (GPU/NPU/RGA) that aren't present on the board instead of showing
+> `N/A`. Works on Orange Pi 3 LTS (Allwinner H6), Orange Pi 5 (RK3588), and Intel
+> HP ProDesk alike. Installed as `myrktopb` (the existing `myrktop` is untouched).
+
+## 🚀 Installing this branch as `myrktopb`
+```bash
+wget -O ~/myrktopb.py https://raw.githubusercontent.com/mhl221135/myrktop/drive-io-conditional-rows/myrktop.py
+printf '#!/bin/bash\npython3 /root/myrktopb.py\n' > /usr/local/bin/myrktopb
+chmod +x /usr/local/bin/myrktopb
+myrktopb   # new tool with per-drive I/O
+myrktop    # original tool still works
+```
+
 🔥 **myrktop** is a lightweight system monitor for **Orange Pi 5 (RK3588)**, providing real-time information about **CPU, GPU, NPU, RAM, RGA, and system temperatures**.
 
 ## **📥 Installation Instructions**
@@ -32,11 +46,13 @@ myrktop
 - **Real-time CPU load & frequency monitoring (per core)**
 - **Live GPU usage & frequency**
 - **NPU & RGA usage**
+- **Per-drive I/O (read/write MB/s + IOPS from /proc/diskstats)**
 - **RAM & Swap usage**
 - **System temperature readings**
 - **Network interfaces: Down/Up readings**
 - **Storage Usage (/etc/fstab)**
 - **NVMe & ATA Storage Info:**
+- Rows for missing hardware (GPU/NPU/RGA) are **hidden**, not shown as N/A
 
 
 ---
